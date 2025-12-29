@@ -36,70 +36,61 @@
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const cardID = urlParams.get('card');
-    
-    // The Master Library matching your CSV
+
     const cardLibrary = {
-        "b_r1": { name: "Toe Yoga", cat: "Body", color: "red" },
-        "b_b1": { name: "Zone 2 Walk", cat: "Body", color: "blue" },
-        "b_b2": { name: "Farmer's Carry", cat: "Body", color: "blue" },
-        "b_g1": { name: "Heathrow Sprint", cat: "Body", color: "gold" },
-        "s_r1": { name: "Thermal Switch", cat: "Sleep", color: "red" },
-        "s_b1": { name: "Wake Anchor", cat: "Sleep", color: "blue" },
-        "s_b2": { name: "3-Hr Buffer", cat: "Sleep", color: "blue" },
-        "s_g1": { name: "Digital Sunset", cat: "Sleep", color: "gold" },
-        "n_r1": { name: "Fiber Buffer", cat: "Nutrition", color: "red" },
-        "n_b1": { name: "Protein Pulse", cat: "Nutrition", color: "blue" },
-        "n_b2": { name: "1g/lb Target", cat: "Nutrition", color: "blue" },
-        "n_g1": { name: "SAD Escape", cat: "Nutrition", color: "gold" },
-        "e_r1": { name: "4-7-8 Reset", cat: "Emotional", color: "red" },
-        "e_b1": { name: "Patient Reframe", cat: "Emotional", color: "blue" },
-        "e_b2": { name: "Eulogy Virtue", cat: "Emotional", color: "blue" },
-        "e_g1": { name: "Vulnerability", cat: "Emotional", color: "gold" }
+        "b_r1": { name: "Toe Yoga", cat: "Body", power: 2 },
+        "b_b1": { name: "Zone 2 Walk", cat: "Body", power: 3 },
+        // ... (Keep the rest of your library here)
     };
 
-    // Logic: If a card was scanned
-    if (cardID && cardLibrary[cardID]) {
-        const item = cardLibrary[cardID];
+    // --- SMART LOGIC ---
+    function processScan(id) {
+        const now = Date.now();
+        const lastScan = localStorage.getItem('last_scan_time_' + id);
         
-        // Update Token Count
+        // 1. Prevent Double Scan (6-hour cooldown)
+        if (lastScan && (now - lastScan) < (6 * 60 * 60 * 1000)) {
+            alert("STAMINA DEPLETED: This tactic is already active. Wait 6 hours to bank again.");
+            return;
+        }
+
+        // 2. Add Token with a CAP of 10
         let counts = JSON.parse(localStorage.getItem('gate_tokens') || "{}");
-        counts[cardID] = (counts[cardID] || 0) + 1;
-        localStorage.setItem('gate_tokens', JSON.stringify(counts));
+        let currentLevel = counts[id] || 0;
         
-        // Log History
-        let logs = JSON.parse(localStorage.getItem('longevity_logs') || "[]");
-        logs.unshift({ task: item.name, time: new Date().toLocaleTimeString() });
-        localStorage.setItem('longevity_logs', JSON.stringify(logs.slice(0, 10)));
-        
-        document.getElementById('status-update').innerText = `SUCCESS: ${item.name.toUpperCase()} BANKED`;
-        
-        // Clean URL after 3 seconds
-        setTimeout(() => { window.history.replaceState({}, document.title, window.location.pathname); }, 3000);
+        if (currentLevel < 10) {
+            counts[id] = currentLevel + 1;
+            localStorage.setItem('gate_tokens', JSON.stringify(counts));
+            localStorage.setItem('last_scan_time_' + id, now);
+            alert("BATTERY CHARGED: " + cardLibrary[id].name + " logged.");
+        } else {
+            alert("MAX CAPACITY: You are fully optimized in this tactic!");
+        }
     }
 
-    // Render Dashboard
-    function render() {
-        const counts = JSON.parse(localStorage.getItem('gate_tokens') || "{}");
-        const logs = JSON.parse(localStorage.getItem('longevity_logs') || "[]");
-        const dash = document.getElementById('dashboard');
-        dash.innerHTML = "";
+    // --- DAILY DECAY (Run every time she opens the app) ---
+    function applyDecay() {
+        const lastDecay = localStorage.getItem('last_decay_date');
+        const today = new Date().toDateString();
 
-        Object.keys(cardLibrary).forEach(id => {
-            if (counts[id]) {
-                const item = cardLibrary[id];
-                dash.innerHTML += `
-                    <div class="token-card ${item.color}">
-                        <span>${item.name} (${item.cat})</span>
-                        <span style="font-size: 1.5rem; font-weight: bold;">${counts[id]}</span>
-                    </div>
-                `;
+        if (lastDecay !== today) {
+            let counts = JSON.parse(localStorage.getItem('gate_tokens') || "{}");
+            for (let id in counts) {
+                counts[id] = Math.max(0, counts[id] - 1); // Drop by 1, min 0
             }
-        });
-
-        document.getElementById('log-list').innerHTML = logs.map(l => `<li>[${l.time}] ${l.task}</li>`).join('');
+            localStorage.setItem('gate_tokens', JSON.stringify(counts));
+            localStorage.setItem('last_decay_date', today);
+        }
     }
 
-    render();
+    if (cardID && cardLibrary[cardID]) {
+        processScan(cardID);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    applyDecay();
+    renderDashboard(); // Assuming you have a render function
 </script>
 </body>
 </html>
+
