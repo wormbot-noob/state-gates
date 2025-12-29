@@ -3,94 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STATE GATES | Medicine 3.0 Dashboard</title>
+    <title>STATE GATES | Medicine 3.0</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; background-color: #0f172a; color: #f8fafc; padding: 20px; }
-        .container { max-width: 600px; margin: auto; border: 1px solid #334155; padding: 20px; background: #1e293b; border-radius: 8px; }
-        h1 { color: #38bdf8; border-bottom: 2px solid #38bdf8; text-align: center; }
-        .token-card { background: #334155; padding: 15px; margin: 10px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .red { border-left: 5px solid #dc2626; }
-        .blue { border-left: 5px solid #2563eb; }
-        .gold { border-left: 5px solid #ca8a04; }
-        .history { font-size: 0.8rem; color: #94a3b8; margin-top: 20px; max-height: 200px; overflow-y: auto; }
-        button { width: 100%; padding: 10px; background: #38bdf8; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; margin: 0; }
+        .container { max-width: 500px; margin: auto; background: #1e293b; padding: 25px; border-radius: 15px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        h1 { font-size: 1.4rem; text-align: center; color: #38bdf8; letter-spacing: 2px; margin-bottom: 30px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .battery-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; }
+        .battery-shell { width: 100%; background: #0f172a; height: 22px; border-radius: 11px; overflow: hidden; margin-bottom: 18px; border: 1px solid #475569; }
+        .battery-fill { height: 100%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .log-section { margin-top: 25px; background: #0f172a; padding: 15px; border-radius: 10px; border: 1px dashed #334155; }
+        .log-title { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; display: block; letter-spacing: 1px; }
+        .log-entry { font-size: 0.8rem; padding: 6px 0; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; color: #cbd5e1; }
+        .log-entry:last-child { border-bottom: none; }
+        .reset-btn { margin-top: 25px; font-size: 0.65rem; color: #64748b; background: none; border: none; cursor: pointer; text-decoration: underline; width: 100%; opacity: 0.6; }
+        .reset-btn:hover { opacity: 1; color: #ef4444; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>STATE GATES: BIO-LOG</h1>
-    <div id="status-update" style="text-align: center; padding: 10px; font-weight: bold; color: #fbbf24;"></div>
+    <h1>STATE GATES : SYSTEM</h1>
     
-    <div id="dashboard">
-        </div>
+    <div id="dashboard"></div>
 
-    <div class="history">
-        <h3>LATEST CLINICAL EVENTS:</h3>
-        <ul id="log-list"></ul>
+    <div class="log-section">
+        <span class="log-title">Recent Clinical Logs (Top 5)</span>
+        <div id="history-log"></div>
     </div>
-    
-    <button onclick="localStorage.clear(); location.reload();">EMERGENCY SYSTEM RESET</button>
+
+    <button class="reset-btn" onclick="if(confirm('SYSTEM OVERRIDE: Wiping all clinical data. Proceed?')) { localStorage.clear(); location.reload(); }">
+        FACTORY RESET
+    </button>
 </div>
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const cardID = urlParams.get('card');
 
+    const POWER = { "r": 1, "b": 2, "g": 4 };
+    const MAX = 10;
+
     const cardLibrary = {
-        "b_r1": { name: "Toe Yoga", cat: "Body", power: 2 },
-        "b_b1": { name: "Zone 2 Walk", cat: "Body", power: 3 },
-        // ... (Keep the rest of your library here)
+        "b_r1": { name: "Toe Yoga", cat: "Body", type: "r" },
+        "b_b1": { name: "Zone 2 Walk", cat: "Body", type: "b" },
+        "b_b2": { name: "Farmer's Carry", cat: "Body", type: "b" },
+        "b_g1": { name: "Heathrow Sprint", cat: "Body", type: "g" },
+        "s_r1": { name: "Thermal Switch", cat: "Sleep", type: "r" },
+        "s_b1": { name: "Wake Anchor", cat: "Sleep", type: "b" },
+        "s_b2": { name: "3-Hr Buffer", cat: "Sleep", type: "b" },
+        "s_g1": { name: "Digital Sunset", cat: "Sleep", type: "g" },
+        "n_r1": { name: "Fiber Buffer", cat: "Nutrition", type: "r" },
+        "n_b1": { name: "Protein Pulse", cat: "Nutrition", type: "b" },
+        "n_b2": { name: "1g/lb Target", cat: "Nutrition", type: "b" },
+        "n_g1": { name: "SAD Escape", cat: "Nutrition", type: "g" },
+        "e_r1": { name: "4-7-8 Reset", cat: "Emotional", type: "r" },
+        "e_b1": { name: "Patient Reframe", cat: "Emotional", type: "b" },
+        "e_b2": { name: "Eulogy Virtue", cat: "Emotional", type: "b" },
+        "e_g1": { name: "Vulnerability", cat: "Emotional", type: "g" }
     };
 
-    // --- SMART LOGIC ---
-    function processScan(id) {
-        const now = Date.now();
-        const lastScan = localStorage.getItem('last_scan_time_' + id);
-        
-        // 1. Prevent Double Scan (6-hour cooldown)
-        if (lastScan && (now - lastScan) < (6 * 60 * 60 * 1000)) {
-            alert("STAMINA DEPLETED: This tactic is already active. Wait 6 hours to bank again.");
-            return;
-        }
-
-        // 2. Add Token with a CAP of 10
-        let counts = JSON.parse(localStorage.getItem('gate_tokens') || "{}");
-        let currentLevel = counts[id] || 0;
-        
-        if (currentLevel < 10) {
-            counts[id] = currentLevel + 1;
-            localStorage.setItem('gate_tokens', JSON.stringify(counts));
-            localStorage.setItem('last_scan_time_' + id, now);
-            alert("BATTERY CHARGED: " + cardLibrary[id].name + " logged.");
-        } else {
-            alert("MAX CAPACITY: You are fully optimized in this tactic!");
-        }
-    }
-
-    // --- DAILY DECAY (Run every time she opens the app) ---
-    function applyDecay() {
-        const lastDecay = localStorage.getItem('last_decay_date');
-        const today = new Date().toDateString();
-
-        if (lastDecay !== today) {
-            let counts = JSON.parse(localStorage.getItem('gate_tokens') || "{}");
-            for (let id in counts) {
-                counts[id] = Math.max(0, counts[id] - 1); // Drop by 1, min 0
-            }
-            localStorage.setItem('gate_tokens', JSON.stringify(counts));
-            localStorage.setItem('last_decay_date', today);
-        }
-    }
-
+    // 1. SCAN LOGIC
     if (cardID && cardLibrary[cardID]) {
-        processScan(cardID);
+        const now = Date.now();
+        const lastScan = localStorage.getItem('cooldown_' + cardID);
+        
+        // 6-hour cooldown check
+        if (lastScan && (now - lastScan) < (6 * 60 * 60 * 1000)) {
+            alert("COOLDOWN ACTIVE: Data already processed for this tactic. Please wait.");
+        } else {
+            const item = cardLibrary[cardID];
+            let levels = JSON.parse(localStorage.getItem('gate_levels') || '{"Body":0,"Sleep":0,"Nutrition":0,"Emotional":0}');
+            
+            // Add power capped at MAX
+            levels[item.cat] = Math.min(MAX, levels[item.cat] + POWER[item.type]);
+            localStorage.setItem('gate_levels', JSON.stringify(levels));
+            localStorage.setItem('cooldown_' + cardID, now);
+
+            // Update History Log
+            let history = JSON.parse(localStorage.getItem('gate_history') || "[]");
+            history.unshift({ name: item.name, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+            localStorage.setItem('gate_history', JSON.stringify(history.slice(0, 5)));
+            
+            alert(`SUCCESS: ${item.name} Banked (+${POWER[item.type]})`);
+        }
+        // Remove card query from URL after processing
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    applyDecay();
-    renderDashboard(); // Assuming you have a render function
+    // 2. DAILY DECAY LOGIC
+    const lastDecay = localStorage.getItem('last_decay_date');
+    const today = new Date().toDateString();
+    
+    if (lastDecay && lastDecay !== today) {
+        let levels = JSON.parse(localStorage.getItem('gate_levels') || '{"Body":0,"Sleep":0,"Nutrition":0,"Emotional":0}');
+        for (let cat in levels) {
+            levels[cat] = Math.max(0, levels[cat] - 1);
+        }
+        localStorage.setItem('gate_levels', JSON.stringify(levels));
+    }
+    localStorage.setItem('last_decay_date', today);
+
+    // 3. RENDER DASHBOARD
+    function render() {
+        const levels = JSON.parse(localStorage.getItem('gate_levels') || '{"Body":0,"Sleep":0,"Nutrition":0,"Emotional":0}');
+        const history = JSON.parse(localStorage.getItem('gate_history') || "[]");
+        
+        const dash = document.getElementById('dashboard');
+        dash.innerHTML = Object.entries(levels).map(([cat, lvl]) => {
+            const pct = (lvl / MAX) * 100;
+            const color = pct > 60 ? '#22c55e' : pct > 30 ? '#eab308' : '#ef4444';
+            return `
+                <div class="battery-label"><span>${cat}</span><span>${lvl}/${MAX}</span></div>
+                <div class="battery-shell"><div class="battery-fill" style="width:${pct}%; background:${color};"></div></div>
+            `;
+        }).join('');
+
+        document.getElementById('history-log').innerHTML = history.length ? 
+            history.map(h => `<div class="log-entry"><span>${h.name}</span><span>${h.time}</span></div>`).join('') :
+            '<div style="font-size:0.8rem; color:#475569; text-align:center;">Waiting for clinical data...</div>';
+    }
+    
+    render();
 </script>
 </body>
 </html>
-
