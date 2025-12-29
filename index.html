@@ -3,231 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Longevity Playbook | Abeer Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>STATE GATES | Medicine 3.0 Dashboard</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .pillar-gradient { background: linear-gradient(180deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 1) 100%); }
-        .decay-outline { border: 2px dashed #cbd5e1; background: transparent !important; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
+        body { font-family: 'Courier New', Courier, monospace; background-color: #0f172a; color: #f8fafc; padding: 20px; }
+        .container { max-width: 600px; margin: auto; border: 1px solid #334155; padding: 20px; background: #1e293b; border-radius: 8px; }
+        h1 { color: #38bdf8; border-bottom: 2px solid #38bdf8; text-align: center; }
+        .token-card { background: #334155; padding: 15px; margin: 10px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .red { border-left: 5px solid #dc2626; }
+        .blue { border-left: 5px solid #2563eb; }
+        .gold { border-left: 5px solid #ca8a04; }
+        .history { font-size: 0.8rem; color: #94a3b8; margin-top: 20px; max-height: 200px; overflow-y: auto; }
+        button { width: 100%; padding: 10px; background: #38bdf8; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen pb-20">
+<body>
 
-    <div class="max-w-md mx-auto px-6 pt-8">
-        
-        <header class="mb-10 flex justify-between items-end">
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight">The Playbook</h1>
-                <p class="text-slate-500 text-sm">Welcome back, Dr. Abeer.</p>
-            </div>
-            <div class="text-right">
-                <span class="text-xs font-bold uppercase tracking-widest text-blue-600">Medicine 3.0</span>
-            </div>
-        </header>
+<div class="container">
+    <h1>STATE GATES: BIO-LOG</h1>
+    <div id="status-update" style="text-align: center; padding: 10px; font-weight: bold; color: #fbbf24;"></div>
+    
+    <div id="dashboard">
+        </div>
 
-        <section class="grid grid-cols-3 gap-4 mb-10">
-            <div class="flex flex-col items-center">
-                <div class="h-40 w-14 bg-slate-200 rounded-2xl relative overflow-hidden border-4 border-white shadow-inner">
-                    <div id="lbt-fill" class="absolute bottom-0 w-full pillar-gradient transition-all duration-1000 ease-out" style="height: 0%"></div>
-                    <div id="lbt-ghost" class="absolute w-full border-t-2 border-blue-300 opacity-0 transition-opacity" style="bottom: 60%; height: 20%"></div>
-                </div>
-                <span class="text-[10px] font-bold mt-3 text-slate-400 uppercase tracking-tighter">Lean Body (LBT)</span>
-                <span id="lbt-count" class="text-sm font-bold text-blue-700">0</span>
-            </div>
-
-            <div class="flex flex-col items-center">
-                <div class="h-40 w-14 bg-slate-200 rounded-2xl relative overflow-hidden border-4 border-white shadow-inner">
-                    <div id="sqt-fill" class="absolute bottom-0 w-full bg-indigo-500 transition-all duration-700 ease-out" style="height: 0%"></div>
-                </div>
-                <span class="text-[10px] font-bold mt-3 text-slate-400 uppercase tracking-tighter">Sleep Res.</span>
-                <span id="sqt-count" class="text-sm font-bold text-indigo-700">0</span>
-            </div>
-
-            <div class="flex flex-col items-center">
-                <div id="eht-container" class="h-40 w-14 bg-slate-200 rounded-2xl relative flex flex-col-reverse items-center pb-2 border-4 border-white shadow-inner transition-colors duration-1000">
-                    </div>
-                <span class="text-[10px] font-bold mt-3 text-slate-400 uppercase tracking-tighter">Eulogy Virtues</span>
-                <span id="eht-count" class="text-sm font-bold text-emerald-700">0</span>
-            </div>
-        </section>
-
-        <section id="state-gate-container" class="glass border border-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 mb-8">
-            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Capacity Check</h3>
-            <p class="text-lg font-semibold mb-6">Where are you today, Abeer?</p>
-            
-            <div class="grid grid-cols-2 gap-3" id="state-buttons">
-                <button onclick="setGate('RED')" class="flex flex-col items-center p-4 rounded-2xl bg-red-50 text-red-700 border border-red-100 active:scale-95 transition-transform">
-                    <i data-lucide="battery-low" class="mb-2"></i>
-                    <span class="text-xs font-bold">Depleted</span>
-                </button>
-                <button onclick="setGate('YELLOW')" class="flex flex-col items-center p-4 rounded-2xl bg-amber-50 text-amber-700 border border-amber-100 active:scale-95 transition-transform">
-                    <i data-lucide="battery-medium" class="mb-2"></i>
-                    <span class="text-xs font-bold">Maintaining</span>
-                </button>
-                <button onclick="setGate('GREEN')" class="flex flex-col items-center p-4 rounded-2xl bg-blue-50 text-blue-700 border border-blue-100 active:scale-95 transition-transform">
-                    <i data-lucide="battery-full" class="mb-2"></i>
-                    <span class="text-xs font-bold">Capable</span>
-                </button>
-                <button onclick="setGate('GOLD')" class="flex flex-col items-center p-4 rounded-2xl bg-purple-50 text-purple-700 border border-purple-100 active:scale-95 transition-transform">
-                    <i data-lucide="zap" class="mb-2"></i>
-                    <span class="text-xs font-bold">Primed</span>
-                </button>
-            </div>
-        </section>
-
-        <section id="tactic-section" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest">Available Tactics</h3>
-                <button onclick="resetGate()" class="text-xs text-slate-400 underline italic uppercase">The treatment failed</button>
-            </div>
-            <div id="tactic-list" class="space-y-3">
-                </div>
-        </section>
-
+    <div class="history">
+        <h3>LATEST CLINICAL EVENTS:</h3>
+        <ul id="log-list"></ul>
     </div>
+    
+    <button onclick="localStorage.clear(); location.reload();">EMERGENCY SYSTEM RESET</button>
+</div>
 
-    <nav class="fixed bottom-0 left-0 right-0 glass border-t border-slate-200 px-8 py-4 flex justify-around items-center">
-        <i data-lucide="layout-dashboard" class="text-blue-600"></i>
-        <i data-lucide="scroll-text" class="text-slate-300"></i>
-        <i data-lucide="target" class="text-slate-300"></i>
-        <i data-lucide="settings" class="text-slate-300"></i>
-    </nav>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const cardID = urlParams.get('card');
+    
+    // The Master Library matching your CSV
+    const cardLibrary = {
+        "b_r1": { name: "Toe Yoga", cat: "Body", color: "red" },
+        "b_b1": { name: "Zone 2 Walk", cat: "Body", color: "blue" },
+        "b_b2": { name: "Farmer's Carry", cat: "Body", color: "blue" },
+        "b_g1": { name: "Heathrow Sprint", cat: "Body", color: "gold" },
+        "s_r1": { name: "Thermal Switch", cat: "Sleep", color: "red" },
+        "s_b1": { name: "Wake Anchor", cat: "Sleep", color: "blue" },
+        "s_b2": { name: "3-Hr Buffer", cat: "Sleep", color: "blue" },
+        "s_g1": { name: "Digital Sunset", cat: "Sleep", color: "gold" },
+        "n_r1": { name: "Fiber Buffer", cat: "Nutrition", color: "red" },
+        "n_b1": { name: "Protein Pulse", cat: "Nutrition", color: "blue" },
+        "n_b2": { name: "1g/lb Target", cat: "Nutrition", color: "blue" },
+        "n_g1": { name: "SAD Escape", cat: "Nutrition", color: "gold" },
+        "e_r1": { name: "4-7-8 Reset", cat: "Emotional", color: "red" },
+        "e_b1": { name: "Patient Reframe", cat: "Emotional", color: "blue" },
+        "e_b2": { name: "Eulogy Virtue", cat: "Emotional", color: "blue" },
+        "e_g1": { name: "Vulnerability", cat: "Emotional", color: "gold" }
+    };
 
-    <script>
-        // --- DATA STRUCTURE ---
-        const TACTIC_LIBRARY = [
-            { id: 1, category: 'BODY', tier: 'RED', name: 'Toe Yoga', icon: 'footprints', bonus: 'LBT' },
-            { id: 2, category: 'BODY', tier: 'YELLOW', name: 'Zone 2 Talk-Test', icon: 'mic', bonus: 'LBT' },
-            { id: 3, category: 'BODY', tier: 'GREEN', name: 'Farmer’s Carry', icon: 'dumbbell', bonus: 'LBT' },
-            { id: 4, category: 'BODY', tier: 'GOLD', name: 'Heathrow Sprint', icon: 'timer', bonus: 'LBT' },
-            { id: 5, category: 'SLEEP', tier: 'RED', name: 'Dark Sanctuary', icon: 'moon', bonus: 'SQT' },
-            { id: 6, category: 'EMOTIONAL', tier: 'RED', name: '4-7-8 Breath', icon: 'wind', bonus: 'EHT' }
-        ];
-
-        let state = JSON.parse(localStorage.getItem('abeer_longevity_v1')) || {
-            lbt: 2,
-            sqt: 1,
-            eht: 1,
-            lastUpdate: Date.now(),
-            currentGate: null
-        };
-
-        // --- CORE LOGIC ---
-        function init() {
-            lucide.createIcons();
-            applyBiologicalDrift();
-            renderPillars();
-            const urlParams = new URLSearchParams(window.location.search);
-const cardId = urlParams.get('card');
-if (cardId) {
-    const tactic = TACTIC_LIBRARY.find(t => t.id == cardId);
-    if (tactic) {
-        awardToken(tactic.bonus);
-        // Clean the URL so refreshing doesn't add double tokens
-        window.history.replaceState({}, document.title, window.location.pathname);
+    // Logic: If a card was scanned
+    if (cardID && cardLibrary[cardID]) {
+        const item = cardLibrary[cardID];
+        
+        // Update Token Count
+        let counts = JSON.parse(localStorage.getItem('gate_tokens') || "{}");
+        counts[cardID] = (counts[cardID] || 0) + 1;
+        localStorage.setItem('gate_tokens', JSON.stringify(counts));
+        
+        // Log History
+        let logs = JSON.parse(localStorage.getItem('longevity_logs') || "[]");
+        logs.unshift({ task: item.name, time: new Date().toLocaleTimeString() });
+        localStorage.setItem('longevity_logs', JSON.stringify(logs.slice(0, 10)));
+        
+        document.getElementById('status-update').innerText = `SUCCESS: ${item.name.toUpperCase()} BANKED`;
+        
+        // Clean URL after 3 seconds
+        setTimeout(() => { window.history.replaceState({}, document.title, window.location.pathname); }, 3000);
     }
-}
-        }
 
-        function setGate(gateTier) {
-            state.currentGate = gateTier;
-            document.getElementById('state-gate-container').classList.add('hidden');
-            document.getElementById('tactic-section').classList.remove('hidden');
-            renderTactics(gateTier);
-        }
+    // Render Dashboard
+    function render() {
+        const counts = JSON.parse(localStorage.getItem('gate_tokens') || "{}");
+        const logs = JSON.parse(localStorage.getItem('longevity_logs') || "[]");
+        const dash = document.getElementById('dashboard');
+        dash.innerHTML = "";
 
-        function resetGate() {
-            state.currentGate = null;
-            document.getElementById('state-gate-container').classList.remove('hidden');
-            document.getElementById('tactic-section').classList.add('hidden');
-        }
-
-        function renderTactics(gate) {
-            const list = document.getElementById('tactic-list');
-            list.innerHTML = '';
-            
-            // Logic: Filter tactics available for this gate + everything below it
-            const tiers = ['RED', 'YELLOW', 'GREEN', 'GOLD'];
-            const allowedIndex = tiers.indexOf(gate);
-            const allowedTiers = tiers.slice(0, allowedIndex + 1);
-
-            const available = TACTIC_LIBRARY.filter(t => allowedTiers.includes(t.tier));
-
-            available.forEach(t => {
-                const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center active:scale-[0.98] transition-all";
-                card.onclick = () => awardToken(t.bonus);
-                card.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="p-2 bg-slate-50 rounded-lg"><i data-lucide="${t.icon}" class="w-5 h-5 text-slate-600"></i></div>
-                        <div>
-                            <p class="font-bold text-sm">${t.name}</p>
-                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">${t.tier} Tier</p>
-                        </div>
+        Object.keys(cardLibrary).forEach(id => {
+            if (counts[id]) {
+                const item = cardLibrary[id];
+                dash.innerHTML += `
+                    <div class="token-card ${item.color}">
+                        <span>${item.name} (${item.cat})</span>
+                        <span style="font-size: 1.5rem; font-weight: bold;">${counts[id]}</span>
                     </div>
-                    <div class="text-blue-500 font-bold text-xs">+1 ${t.bonus}</div>
                 `;
-                list.appendChild(card);
-            });
-            lucide.createIcons();
-        }
-
-        function awardToken(type) {
-            if(type === 'LBT') state.lbt = Math.min(state.lbt + 1, 10);
-            if(type === 'SQT') state.sqt = Math.min(state.sqt + 1, 5);
-            if(type === 'EHT') state.eht = Math.min(state.eht + 1, 15);
-            
-            state.lastUpdate = Date.now();
-            save();
-            renderPillars();
-            resetGate();
-            alert(`Token Banked: Your ${type} has been reinforced.`);
-        }
-
-        function applyBiologicalDrift() {
-            const now = Date.now();
-            const hoursSince = (now - state.lastUpdate) / (1000 * 60 * 60);
-            
-            // LBT Decay: -1 every 168 hours (7 days)
-            if (hoursSince > 168) {
-                const decayAmount = Math.floor(hoursSince / 168);
-                state.lbt = Math.max(0, state.lbt - decayAmount);
             }
+        });
 
-            // SQT Decay: Resets every 72 hours
-            if (hoursSince > 72) state.sqt = 0;
+        document.getElementById('log-list').innerHTML = logs.map(l => `<li>[${l.time}] ${l.task}</li>`).join('');
+    }
 
-            save();
-        }
-
-        function renderPillars() {
-            // LBT (Cap at 10 for visual)
-            document.getElementById('lbt-fill').style.height = `${(state.lbt / 10) * 100}%`;
-            document.getElementById('lbt-count').innerText = state.lbt;
-
-            // SQT (Cap at 5)
-            document.getElementById('sqt-fill').style.height = `${(state.sqt / 5) * 100}%`;
-            document.getElementById('sqt-count').innerText = state.sqt;
-
-            // EHT (Garden Visual)
-            const garden = document.getElementById('eht-container');
-            garden.innerHTML = '';
-            for(let i=0; i < state.eht; i++) {
-                const dot = document.createElement('div');
-                dot.className = "w-2 h-2 bg-emerald-500 rounded-full mb-1 animate-pulse";
-                garden.appendChild(dot);
-            }
-            document.getElementById('eht-count').innerText = state.eht;
-        }
-
-        function save() {
-            localStorage.setItem('abeer_longevity_v1', JSON.stringify(state));
-        }
-
-        init();
-    </script>
+    render();
+</script>
 </body>
 </html>
